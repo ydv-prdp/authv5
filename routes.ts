@@ -4,14 +4,16 @@ export const publicRoutes = [
 
 ]
 
+//These routes will redirect logged in users to /settings
 export const authRoutes = [
     "/auth/login",
     "/auth/register",
     "/auth/error",
-    "/auth/reset"
+    "/auth/reset",
+    "/auth/new-password"
 ]
 
-
+//API authentication purposes
 export const apiAuthPrefix = "/api/auth"
 
 
