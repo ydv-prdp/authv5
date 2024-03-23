@@ -1,7 +1,9 @@
 import {v4 as uuidv4} from "uuid"
 import {getVerificationTokenByEmail} from "@/data/verification-data";
 import { db } from "./db";
-const generateVerificationToken = async(email:string) => {
+import email from "next-auth/providers/email";
+import { getPasswordResetTokenByEmail } from "@/data/password-reset-token";
+export const generateVerificationToken = async(email:string) => {
     const token = uuidv4();
     const expires = new Date(new Date().getTime() + 3600 * 1000);
     const exisitingToken = await getVerificationTokenByEmail(email);
@@ -23,4 +25,25 @@ const generateVerificationToken = async(email:string) => {
     return verificationToken
 }
 
-export default generateVerificationToken
+export const generatePasswordResetToken = async(email:string)=>{
+    const token = uuidv4();
+    const expires = new Date(new Date().getTime() + 3600 * 1000);
+    const exisitingToken = await getPasswordResetTokenByEmail(email);
+    if(exisitingToken){
+        await db.passwordResetToken.delete({
+            where:{
+                id:exisitingToken.id
+            }
+        })
+    }
+    const passwordResetToken = await db.passwordResetToken.create({
+        data:{
+            email,
+            token,
+            expires
+        }
+    })
+
+    return passwordResetToken
+}
+
