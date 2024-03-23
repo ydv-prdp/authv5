@@ -24,10 +24,18 @@ export const {
        } 
     },
     callbacks:{
+        async signIn({user, account}){
+            //Allow Oauth without email verification
+            if(account?.provider !== "credentials") return true
+            const existingUser = await getUserById(user?.id);
+            //Prevent sign in without email verification
+            if(!existingUser?.emailVerified) return false;
+            return true
+        },
         async session({token, session}){
-            console.log({
-                sessionToken:token,
-            })
+            if (token.sub && session.user) {
+                session.user.id = token.sub;
+            }
             if(token.sub && session.user){
                 session.user.role = token.role as "ADMIN" | "USER";
             }
