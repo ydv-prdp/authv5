@@ -33,6 +33,7 @@ const LoginForm = () => {
   const [isPending, startTransition] = useTransition();
   const [success, setSuccess] = useState<string | undefined>("");
   const [error, setError] = useState<string | undefined>("");
+  const [showTwoFactor, setShowTwoFactor] = useState(false);
   
   const form = useForm<z.infer<typeof LoginSchema>>({
     resolver: zodResolver(LoginSchema),
@@ -48,9 +49,18 @@ const LoginForm = () => {
     startTransition(()=>{
       login(values)
       .then((data)=>{
-        setError(data?.error);
-        setSuccess(data?.success);
-      })
+        if(data?.error){
+          form.reset();
+          setError(data?.error)
+        }
+        if(data?.success){
+          form.reset();
+          setSuccess(data.success)
+        }
+        if(data?.twoFactor){
+          setShowTwoFactor(true);
+        }
+      }).catch(()=>setError("Something went wrongh"))
     })
   } 
   return (
@@ -65,7 +75,29 @@ const LoginForm = () => {
             className="space-y-6"
           >
             <div className="space-y-4">
-            <FormField
+              {showTwoFactor && (
+                 <FormField
+                 control={form.control}
+                 name="code"
+                 render={({field})=>(
+                   <FormItem>
+                     <FormLabel>Two Factor Code</FormLabel>
+                     <FormControl>
+                       <Input
+                         {...field}
+                         disabled={isPending}
+                         placeholder="123456"
+                       />
+                     </FormControl>
+                     <FormMessage/>
+                   </FormItem>
+                 )}
+               >
+                   </FormField>
+              )}
+            {!showTwoFactor && (
+              <>
+                <FormField
               control={form.control}
               name="email"
               render={({field})=>(
@@ -83,10 +115,9 @@ const LoginForm = () => {
                 </FormItem>
               )}
             >
+                </FormField>
 
-            </FormField>
-
-            <FormField
+                <FormField
               control={form.control}
               name="password"
               render={({field})=>(
@@ -115,7 +146,9 @@ const LoginForm = () => {
                 </FormItem>
               )}
             >
-            </FormField>
+                </FormField>
+              </>
+            )}
             </div>
 
             <FormError message={error || urlError}/>
@@ -126,7 +159,7 @@ const LoginForm = () => {
               className="w-full"
               disabled={isPending}
             >
-              Login
+              {showTwoFactor ? "Confirm": "Login"}
             </Button>
           </form>
         </Form>
